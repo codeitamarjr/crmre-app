@@ -25,7 +25,7 @@ export const FeaturedCard = ({ item: { image, rating, name, address, price }, on
                 </Text>
                 <View className='flex flex-row items-center justify-between w-full'>
                     <Text className='text-xl font-rubik-extra-bold text-white'>
-                        ${price}
+                        {price}
                     </Text>
                     <Image source={icons.heart} className='size-5' />
                 </View>
@@ -34,7 +34,7 @@ export const FeaturedCard = ({ item: { image, rating, name, address, price }, on
     )
 }
 
-export const RegularCard = ({ item: { image, rating, name, address, price }, onPress }: Props) => {
+export const RegularCard = ({ item: { image = 'https://havenhomes.ie/wp-content/uploads/2022/08/138-Rathgar-Rd-3.png', rating = 0, name, address, rate, type, number }, onPress }: Props) => {
     return (
         <TouchableOpacity onPress={onPress} className='flex-1 w-full mt-4 px-3 py-4 rounded-lg bg-white shadow-lg shadow-black-100/70 relative'>
             <View className='flex flex-row items-center absolute px-2 top-5 right-5 bg-white/90 p-1 rounded-full z-50'>
@@ -45,13 +45,13 @@ export const RegularCard = ({ item: { image, rating, name, address, price }, onP
             <Image source={{ uri: image }} className='w-full h-40 rounded-lg' />
 
             <View className='flex flex-col mt-2'>
-                <Text className='text-base font-rubik-bold text-black-300'>{name}</Text>
+                <Text className='text-base font-rubik-bold text-black-300'>{type} #{number}</Text>
                 <Text className='text-xs font-rubik text-black-200'>
                     {address}
                 </Text>
                 <View className='flex flex-row items-center justify-between mt-2'>
                     <Text className='text-base font-rubik-bold text-primary-300'>
-                        ${price}
+                        {rate}
                     </Text>
                     <Image source={icons.heart} className='size-5 mr-2' tintColor="#191d31" />
                 </View>

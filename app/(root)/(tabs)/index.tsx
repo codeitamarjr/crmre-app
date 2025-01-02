@@ -8,19 +8,22 @@ import { FeaturedCard, RegularCard } from "@/components/Cards";
 import Filters from "@/components/Filters";
 import { useGlobalContext } from "@/lib/global-provide";
 import { useAppwrite } from "@/lib/useAppwrite";
-import { getLatestProperties, getProperties } from "@/lib/appwrite";
-import { useEffect } from "react";
+import { useCRMRE, getProperties, Property } from "@/lib/crmre";
+import { getLatestProperties } from "@/lib/appwrite";
+import { useEffect, useState } from "react";
 import NoResults from "@/components/NoResults";
 
 export default function Index() {
   const { user } = useGlobalContext();
+  const [availableUnits, setAvailableUnits] = useState([]);
+  const [loadingUnits, setLoadingUnits] = useState(true);
   const params = useLocalSearchParams<{ query?: string; filter?: string; }>();
 
   const { data: latestProperties, loading: latestPropertiesLoading } = useAppwrite({
     fn: getLatestProperties,
   });
 
-  const { data: properties, loading, refetch } = useAppwrite({
+  const { data: properties, loading, refetch } = useCRMRE<Property[], any>({
     fn: getProperties,
     params: {
       filter: params.filter!,
@@ -55,7 +58,7 @@ export default function Index() {
         columnWrapperClassName="flex gap-5 px-5"
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
-          loading ? (
+          loadingUnits ? (
             <ActivityIndicator size="large" className="text-primary-300 mt-5" />
           ) : <NoResults />
         }
