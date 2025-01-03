@@ -52,7 +52,7 @@ export default function Index() {
       <FlatList
         data={properties}
         renderItem={({ item }) => <RegularCard item={item} onPress={() => handleCardPress(item.$id)} />}
-        keyExtractor={(item) => item.$id}
+        keyExtractor={(item, index) => item.$id || index.toString()}
         numColumns={2}
         contentContainerClassName="pb-32"
         columnWrapperClassName="flex gap-5 px-5"
