@@ -8,6 +8,7 @@ import {
   Dimensions,
   Platform,
   ActivityIndicator,
+  Linking,
 } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 
@@ -159,9 +160,15 @@ const PropertyDetails = () => {
                   <Text className="text-lg text-black-300 text-start font-rubik-bold">
                     {agent.name}
                   </Text>
-                  <Text className="text-sm text-black-200 text-start font-rubik-medium">
-                    {agent.email}
-                  </Text>
+                  <TouchableOpacity
+                    onPress={() =>
+                      Linking.openURL(`mailto:${agent.email}?subject=Enquiry from Real Enquiries App - ${property.type} ${property.number} - ${property.address}`)
+                    }
+                  >
+                    <Text className="text-sm text-black-200 text-start font-rubik-medium">
+                      {agent.email}
+                    </Text>
+                  </TouchableOpacity>
                 </View>
               </View>
 
