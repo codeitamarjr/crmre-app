@@ -1,71 +1,78 @@
-import { ActivityIndicator, Button, FlatList, Image, Text, Touchable, TouchableOpacity, View } from "react-native";
-import { Link, router, useLocalSearchParams } from "expo-router";
+import { ActivityIndicator, FlatList, Image, Text, TouchableOpacity, View } from "react-native";
+import { router, useLocalSearchParams } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import images from "@/constants/images";
 import icons from "@/constants/icons";
 import Search from "@/components/Search";
 import { FeaturedCard, RegularCard } from "@/components/Cards";
 import Filters from "@/components/Filters";
 import { useGlobalContext } from "@/lib/global-provide";
-import { useAppwrite } from "@/lib/useAppwrite";
-import { useCRMRE, getProperties, Property } from "@/lib/crmre";
-import { getLatestProperties } from "@/lib/appwrite";
-import { useEffect, useState } from "react";
+import { useCRMRE, getProperties } from "@/lib/crmre";
 import NoResults from "@/components/NoResults";
+import { useMemo } from "react";
 
 export default function Index() {
   const { user } = useGlobalContext();
-  const [availableUnits, setAvailableUnits] = useState([]);
-  const [loadingUnits, setLoadingUnits] = useState(true);
-  const params = useLocalSearchParams<{ query?: string; filter?: string; }>();
+  const params = useLocalSearchParams<{ query?: string; filter?: string }>();
 
-  const { data: latestProperties, loading: latestPropertiesLoading } = useAppwrite({
-    fn: getLatestProperties,
+  // Memoized params
+  const featuredParams = useMemo(
+    () => ({ endpoint: "units/featured", query: params.query, limit: 5 }),
+    [params.query]
+  );
+
+  const cardsParams = useMemo(
+    () => ({ endpoint: "units", query: params.query, limit: 6 }),
+    [params.query]
+  );
+
+  // Fetch featured properties
+  const { data: featuredProperties, loading: featuredLoading, error: featuredError } = useCRMRE({
+    fn: getProperties,
+    params: featuredParams,
   });
 
-  const { data: properties, loading, refetch } = useCRMRE<Property[], any>({
+  // Fetch regular properties
+  const { data: properties, loading: cardsLoading, error: cardsError } = useCRMRE({
     fn: getProperties,
-    params: {
-      filter: params.filter!,
-      query: params.query!,
-      limit: 6,
-    },
-    skip: true,
-  })
+    params: cardsParams,
+  });
 
-  const handleCardPress = (id: string) => router.push(`/properties/${id}`);
+  const handleCardPress = (id?: number) => {
+    if (id) {
+      router.push(`/properties/${id}`);
+    } else {
+      console.error("Property ID is undefined");
+    }
+  };
 
-  useEffect(() => {
-    refetch({
-      filter: params.filter!,
-      query: params.query!,
-      limit: 6,
-    });
-  }, [params.query, params.filter]);
-
-  const date = new Date();
-  const hours = date.getHours();
-  const greeting = hours < 12 && hours >= 6 ? "Good morning" : hours < 18 && hours >= 12 ? "Good afternoon" : "Good evening";
+  const greeting = (() => {
+    const hours = new Date().getHours();
+    if (hours < 12 && hours >= 6) return "Good morning";
+    if (hours < 18 && hours >= 12) return "Good afternoon";
+    return "Good evening";
+  })();
 
   return (
     <SafeAreaView className="bg-white h-full">
       <FlatList
         data={properties}
-        renderItem={({ item }) => <RegularCard item={item} onPress={() => handleCardPress(item.$id)} />}
-        keyExtractor={(item, index) => item.$id || index.toString()}
+        renderItem={({ item }) => (
+          <RegularCard item={item} onPress={() => handleCardPress(item.id)} />
+        )}
+        // add prefix card- to keyExtractor
+        keyExtractor={(item, index) => item.id.toString() || index.toString()}
         numColumns={2}
         contentContainerClassName="pb-32"
         columnWrapperClassName="flex gap-5 px-5"
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
-          loadingUnits ? (
+          cardsLoading ? (
             <ActivityIndicator size="large" className="text-primary-300 mt-5" />
           ) : <NoResults />
         }
         ListHeaderComponent={
           <View className="px-5">
             <View className="flex flex-row items-center justify-between mt-5">
-
               <View className="flex flex-row items-center">
                 <Image source={{ uri: user?.avatar }} className="size-12 rounded-full" />
                 <View className="flex flex-col items-start ml-2 justify-center">
@@ -73,9 +80,7 @@ export default function Index() {
                   <Text className="text-base font-rubik-medium text-black-300">{user?.name}</Text>
                 </View>
               </View>
-
               <Image source={icons.bell} className="size-6" />
-
             </View>
 
             <Search />
@@ -92,14 +97,21 @@ export default function Index() {
                 </TouchableOpacity>
               </View>
 
-              {latestPropertiesLoading ?
+              {featuredLoading ?
                 <ActivityIndicator size="large" className="text-primary-300" /> :
-                !latestProperties || latestProperties.length === 0 ? <NoResults /> : (
+                !featuredProperties || featuredProperties.length === 0 ? <NoResults /> : (
 
                   <FlatList
-                    data={latestProperties}
-                    renderItem={({ item }) => <FeaturedCard item={item} onPress={() => handleCardPress(item.$id)} />}
-                    keyExtractor={(item) => item.$id}
+                    data={featuredProperties}
+                    renderItem={({ item }) => (
+                      <FeaturedCard
+                        item={item}
+                        onPress={() => handleCardPress(item.id)}
+                      />
+                    )}
+                    keyExtractor={(item, index) =>
+                      `featured-${item.id.toString()}` || `featured-${index.toString()}`
+                    }
                     horizontal
                     showsHorizontalScrollIndicator={false}
                     bounces={false}
@@ -121,8 +133,6 @@ export default function Index() {
             </View>
 
             <Filters />
-
-
 
           </View>
         }

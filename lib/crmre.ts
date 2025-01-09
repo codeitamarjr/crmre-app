@@ -3,23 +3,45 @@ import { useEffect, useState, useCallback } from "react";
 import { Alert } from "react-native";
 
 
-interface Property {
+export interface Property {
   id: number;
-  name: string;
+  address: string;
+  property_name: string;
+  city: string;
+  country: string;
+  description: string;
+  rate: string;
+  featured?: boolean;
 }
 
 export async function getProperties({
-  filter,
+  endpoint = 'units',
+  id,
+  featured,
   query,
   limit,
 }: {
-  filter: string;
-  query: string;
+  endpoint?: 'units' | 'units/featured' | `units/${number}`;
+  id?: number;
+  featured?: boolean;
+  query?: string;
   limit?: number;
 }): Promise<Property[]> {
   try {
-    const response = await axios.get<{ data: Property[] }>('https://mdpm.realenquiries.com/api/units/available', {
+    const url = `https://mdpm.realenquiries.com/api/v1/${endpoint}`;
+    const response = await axios.get<{ data: Property[] }>(url, {
+      params: {
+        id,
+        featured: featured ? 'true' : undefined,
+        query,
+        limit,
+      },
     });
+
+    if (response.data.data.length === 0) {
+      Alert.alert('No properties found');
+    }
+
     return response.data.data;
   } catch (error) {
     console.error(error);
@@ -27,10 +49,13 @@ export async function getProperties({
   }
 }
 
+
 interface UseCRMREOptions<T, P extends Record<string, string | number>> {
   fn: (params: P) => Promise<T>;
   params?: P;
   skip?: boolean;
+  skipAlert?: boolean;
+  customAlert?: (message: string) => void;
 }
 
 interface UseCRMREReturn<T, P> {
@@ -44,6 +69,8 @@ export const useCRMRE = <T, P extends Record<string, string | number>>({
   fn,
   params = {} as P,
   skip = false,
+  skipAlert = false,
+  customAlert,
 }: UseCRMREOptions<T, P>): UseCRMREReturn<T, P> => {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(!skip);
@@ -61,21 +88,28 @@ export const useCRMRE = <T, P extends Record<string, string | number>>({
         const errorMessage =
           err instanceof Error ? err.message : "An unknown error occurred";
         setError(errorMessage);
-        Alert.alert("Error", errorMessage);
+
+        if (!skipAlert) {
+          if (customAlert) {
+            customAlert(errorMessage);
+          } else {
+            Alert.alert("Error", errorMessage);
+          }
+        }
       } finally {
         setLoading(false);
       }
     },
-    [fn]
+    [fn, skipAlert, customAlert]
   );
 
   useEffect(() => {
     if (!skip) {
       fetchData(params);
     }
-  }, []);
+  }, [fetchData, params, skip]);
 
-  const refetch = async (newParams: P) => await fetchData(newParams);
+  const refetch = async (newParams: P = params) => await fetchData(newParams);
 
   return { data, loading, error, refetch };
 };
