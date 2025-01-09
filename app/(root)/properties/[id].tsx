@@ -7,6 +7,7 @@ import {
   View,
   Dimensions,
   Platform,
+  ActivityIndicator,
 } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 
@@ -15,20 +16,44 @@ import images from "@/constants/images";
 import Comment from "@/components/Comment";
 import { facilities } from "@/constants/data";
 
-import { useAppwrite } from "@/lib/useAppwrite";
-import { getPropertyById } from "@/lib/appwrite";
+import { useMemo } from "react";
+import { getProperties, useCRMRE, Property } from "@/lib/crmre";
 
-const Property = () => {
+const PropertyDetails = () => {
   const { id } = useLocalSearchParams<{ id?: string }>();
-
   const windowHeight = Dimensions.get("window").height;
 
-  const { data: property } = useAppwrite({
-    fn: getPropertyById,
-    params: {
-      id: id!,
-    },
+  // Memoize params to avoid re-rendering issues
+  const params = useMemo(() => ({ endpoint: `units/${id}` as `units/${number}` }), [id]);
+
+  const { data, loading, error } = useCRMRE<Property, typeof params>({
+    fn: getProperties,
+    params,
   });
+
+  const property = data || null;
+
+  if (loading) {
+    return (
+      <View className="flex-1 justify-center items-center">
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
+  }
+
+  if (error || !property) {
+    return (
+      <View className="flex-1 justify-center items-center">
+        <Text className="text-red-500">Failed to load property details.</Text>
+        <TouchableOpacity onPress={() => router.back()}>
+          <Text className="text-blue-500 mt-5">Go Back</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  const agent = Array.isArray(property.agent) ? property.agent[0] : {};
+  const gallery = property.gallery ? [property.gallery] : [];
 
   return (
     <View>
@@ -38,7 +63,7 @@ const Property = () => {
       >
         <View className="relative w-full" style={{ height: windowHeight / 2 }}>
           <Image
-            source={{ uri: property?.image }}
+            source={{ uri: property.gallery?.cover }}
             className="size-full"
             resizeMode="cover"
           />
@@ -79,7 +104,7 @@ const Property = () => {
 
         <View className="px-5 mt-7 flex gap-2">
           <Text className="text-2xl font-rubik-extrabold">
-            {property?.name}
+            {property?.type} {property?.number} - {property?.address}
           </Text>
 
           <View className="flex flex-row items-center gap-3">
@@ -92,7 +117,7 @@ const Property = () => {
             <View className="flex flex-row items-center gap-2">
               <Image source={icons.star} className="size-5" />
               <Text className="text-black-200 text-sm mt-1 font-rubik-medium">
-                {property?.rating} ({property?.reviews.length} reviews)
+                5 (9 reviews)
               </Text>
             </View>
           </View>
@@ -126,16 +151,16 @@ const Property = () => {
             <View className="flex flex-row items-center justify-between mt-4">
               <View className="flex flex-row items-center">
                 <Image
-                  source={{ uri: property?.agent.avatar }}
+                  source={{ uri: agent.avatar }}
                   className="size-14 rounded-full"
                 />
 
                 <View className="flex flex-col items-start justify-center ml-3">
                   <Text className="text-lg text-black-300 text-start font-rubik-bold">
-                    {property?.agent.name}
+                    {agent.name}
                   </Text>
                   <Text className="text-sm text-black-200 text-start font-rubik-medium">
-                    {property?.agent.email}
+                    {agent.email}
                   </Text>
                 </View>
               </View>
@@ -161,7 +186,7 @@ const Property = () => {
               Facilities
             </Text>
 
-            {property?.facilities.length > 0 && (
+            {false && property?.facilities.length > 0 && (
               <View className="flex flex-row flex-wrap items-start justify-start mt-2 gap-5">
                 {property?.facilities.map((item: string, index: number) => {
                   const facility = facilities.find(
@@ -194,7 +219,7 @@ const Property = () => {
             )}
           </View>
 
-          {property?.gallery.length > 0 && (
+          {false && property?.gallery.length > 0 && (
             <View className="mt-7">
               <Text className="text-black-300 text-xl font-rubik-bold">
                 Gallery
@@ -233,7 +258,7 @@ const Property = () => {
             />
           </View>
 
-          {property?.reviews.length > 0 && (
+          {false && property?.reviews.length > 0 && (
             <View className="mt-7">
               <View className="flex flex-row items-center justify-between">
                 <View className="flex flex-row items-center">
@@ -268,7 +293,7 @@ const Property = () => {
               numberOfLines={1}
               className="text-primary-300 text-start text-2xl font-rubik-bold"
             >
-              ${property?.price}
+              {property?.rate}
             </Text>
           </View>
 
@@ -283,4 +308,4 @@ const Property = () => {
   );
 };
 
-export default Property;
+export default PropertyDetails;

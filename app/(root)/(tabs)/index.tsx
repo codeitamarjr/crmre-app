@@ -16,12 +16,12 @@ export default function Index() {
 
   // Memoized params
   const featuredParams = useMemo(
-    () => ({ endpoint: "units/featured", query: params.query, limit: 5 }),
+    () => ({ endpoint: "units/featured" as const, query: params.query ?? "", limit: 5 }),
     [params.query]
   );
 
   const cardsParams = useMemo(
-    () => ({ endpoint: "units", query: params.query, limit: 6 }),
+    () => ({ endpoint: "units" as const, query: params.query ?? "", limit: 6 }),
     [params.query]
   );
 
@@ -55,12 +55,11 @@ export default function Index() {
   return (
     <SafeAreaView className="bg-white h-full">
       <FlatList
-        data={properties}
+        data={Array.isArray(properties) ? properties : []}
         renderItem={({ item }) => (
           <RegularCard item={item} onPress={() => handleCardPress(item.id)} />
         )}
-        // add prefix card- to keyExtractor
-        keyExtractor={(item, index) => item.id.toString() || index.toString()}
+        keyExtractor={(item, index) => `property-${item.id.toString()}` || `property-${index.toString()}`}
         numColumns={2}
         contentContainerClassName="pb-32"
         columnWrapperClassName="flex gap-5 px-5"
@@ -99,7 +98,7 @@ export default function Index() {
 
               {featuredLoading ?
                 <ActivityIndicator size="large" className="text-primary-300" /> :
-                !featuredProperties || featuredProperties.length === 0 ? <NoResults /> : (
+                !Array.isArray(featuredProperties) || featuredProperties.length === 0 ? <NoResults /> : (
 
                   <FlatList
                     data={featuredProperties}
