@@ -140,7 +140,7 @@ const PropertyDetails = () => {
               <Image source={icons.area} className="size-4" />
             </View>
             <Text className="text-black-300 text-sm font-rubik-medium ml-2">
-              {property?.area} sqft
+              {property?.area} SQM
             </Text>
           </View>
 
@@ -173,8 +173,16 @@ const PropertyDetails = () => {
               </View>
 
               <View className="flex flex-row items-center gap-3">
-                <Image source={icons.chat} className="size-7" />
-                <Image source={icons.phone} className="size-7" />
+                <TouchableOpacity
+                  onPress={() => Linking.openURL(`mailto:${agent.email}?subject=Enquiry from Real Enquiries App - ${property.type} ${property.number} - ${property.address}`)}
+                >
+                  <Image source={icons.chat} className="size-7" />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => Linking.openURL(`tel:${agent.phone}`)}
+                >
+                  <Image source={icons.phone} className="size-7" />
+                </TouchableOpacity>
               </View>
             </View>
           </View>

@@ -26,6 +26,7 @@ export interface Property {
   };
   number: number;
   type: string;
+  area: number;
 }
 
 export async function getProperties({
