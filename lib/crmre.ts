@@ -16,7 +16,9 @@ export interface Property {
     cover: string;
   };
   facilities: {
-    name: string;
+    identifier: string;
+    facility: string;
+    description: string;
   };
   agent: {
     name: string;
@@ -27,6 +29,11 @@ export interface Property {
   number: number;
   type: string;
   area: number;
+  application_url: string;
+  coordinates: {
+    latitude: number;
+    longitude: number;
+  };
 }
 
 export async function getProperties({

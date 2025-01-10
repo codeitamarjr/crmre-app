@@ -11,6 +11,7 @@ import {
   Linking,
 } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
+import MapView, { Marker } from "react-native-maps";
 
 import icons from "@/constants/icons";
 import images from "@/constants/images";
@@ -267,10 +268,24 @@ const PropertyDetails = () => {
               </Text>
             </View>
 
-            <Image
-              source={images.map}
-              className="h-52 w-full mt-5 rounded-xl"
-            />
+            <MapView
+              style={{ height: 200, width: '100%', marginTop: 20, borderRadius: 15 }}
+              initialRegion={{
+                latitude: parseFloat(property?.coordinates?.latitude) || 53.330422,
+                longitude: parseFloat(property?.coordinates?.longitude) || -6.235361,
+                latitudeDelta: 0.01,
+                longitudeDelta: 0.01,
+              }}
+            >
+              <Marker
+                coordinate={{
+                  latitude: parseFloat(property?.coordinates?.latitude) || 53.330422,
+                  longitude: parseFloat(property?.coordinates?.longitude) || -6.235361,
+                }}
+                title={property?.type}
+                description={property?.address}
+              />
+            </MapView>
           </View>
 
           {false && property?.reviews.length > 0 && (
@@ -312,9 +327,14 @@ const PropertyDetails = () => {
             </Text>
           </View>
 
-          <TouchableOpacity className="flex-1 flex flex-row items-center justify-center bg-primary-300 py-3 rounded-full shadow-md shadow-zinc-400">
+          <TouchableOpacity
+            className="flex-1 flex flex-row items-center justify-center bg-primary-300 py-3 rounded-full shadow-md shadow-zinc-400"
+            onPress={() => {
+              Linking.openURL(property.application_url);
+            }}
+          >
             <Text className="text-white text-lg text-center font-rubik-bold">
-              Book Now
+              Apply Now
             </Text>
           </TouchableOpacity>
         </View>
