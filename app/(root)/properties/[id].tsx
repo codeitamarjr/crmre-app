@@ -141,7 +141,7 @@ const PropertyDetails = () => {
               <Image source={icons.area} className="size-4" />
             </View>
             <Text className="text-black-300 text-sm font-rubik-medium ml-2">
-              {property?.area} SQM
+              {property?.area} Sqm
             </Text>
           </View>
 
@@ -264,24 +264,28 @@ const PropertyDetails = () => {
               </Text>
             </View>
 
-            <MapView
-              style={{ height: 200, width: '100%', marginTop: 20, borderRadius: 15 }}
-              initialRegion={{
-                latitude: parseFloat(property?.coordinates?.latitude) || 53.330422,
-                longitude: parseFloat(property?.coordinates?.longitude) || -6.235361,
-                latitudeDelta: 0.01,
-                longitudeDelta: 0.01,
-              }}
-            >
-              <Marker
-                coordinate={{
-                  latitude: parseFloat(property?.coordinates?.latitude) || 53.330422,
-                  longitude: parseFloat(property?.coordinates?.longitude) || -6.235361,
+            {property?.coordinates?.latitude && property?.coordinates?.longitude && (
+              <MapView
+                style={{ height: 200, width: '100%', marginTop: 20, borderRadius: 15 }}
+                initialRegion={{
+                  latitude: property?.coordinates?.latitude,
+                  longitude: property?.coordinates?.longitude,
+                  latitudeDelta: 0.01,
+                  longitudeDelta: 0.01,
                 }}
-                title={property?.type}
-                description={property?.address}
-              />
-            </MapView>
+              >
+                <Marker
+                  coordinate={{
+                    latitude: property?.coordinates?.latitude,
+                    longitude: property?.coordinates?.longitude,
+                  }}
+                  title={property?.type}
+                  description={property?.address}
+                />
+              </MapView>
+            )}
+
+
           </View>
 
           {false && property?.reviews.length > 0 && (
