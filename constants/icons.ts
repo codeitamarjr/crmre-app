@@ -23,12 +23,12 @@ import chat from "@/assets/icons/chat.png";
 import phone from "@/assets/icons/phone.png";
 import carPark from "@/assets/icons/car-park.png";
 import cutlery from "@/assets/icons/cutlery.png";
-import dog from "@/assets/icons/dog.png";
+import petFriendly from "@/assets/icons/petFriendly.png";
 import dumbell from "@/assets/icons/dumbell.png";
 import laundry from "@/assets/icons/laundry.png";
 import run from "@/assets/icons/run.png";
 import swim from "@/assets/icons/swim.png";
-import wifi from "@/assets/icons/wifi.png";
+import freeWifi from "@/assets/icons/wifi.png";
 import location from "@/assets/icons/location.png";
 import edit from "@/assets/icons/edit.png";
 
@@ -58,12 +58,12 @@ export default {
   phone,
   carPark,
   cutlery,
-  dog,
+  petFriendly,
   dumbell,
   laundry,
   run,
   swim,
-  wifi,
+  freeWifi,
   location,
   edit,
 };
