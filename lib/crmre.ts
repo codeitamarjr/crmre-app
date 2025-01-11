@@ -42,12 +42,14 @@ export async function getProperties({
   endpoint = 'units',
   id,
   featured,
+  page = 1,
   query,
   limit,
 }: {
-  endpoint?: 'units' | 'units/featured' | `units/${number}`;
+  endpoint?: 'units' | `units/${number}`;
   id?: number;
   featured?: boolean;
+  page?: number;
   query?: string;
   limit?: number;
 }): Promise<Property[] | Property> {
@@ -56,7 +58,7 @@ export async function getProperties({
     const response = await axios.get<{ data: Property | Record<string, Property> }>(url, {
       params: {
         id,
-        featured: featured ? 'true' : undefined,
+        featured: featured ? 1 : undefined,
         query,
         limit,
       },

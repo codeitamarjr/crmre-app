@@ -8,33 +8,27 @@ import Filters from "@/components/Filters";
 import { useGlobalContext } from "@/lib/global-provide";
 import { useCRMRE, getProperties } from "@/lib/crmre";
 import NoResults from "@/components/NoResults";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 export default function Index() {
   const { user } = useGlobalContext();
   const params = useLocalSearchParams<{ query?: string; filter?: string }>();
 
-  // Memoized params
-  const featuredParams = useMemo(
-    () => ({ endpoint: "units/featured" as const, query: params.query ?? "", limit: 5 }),
-    [params.query]
-  );
+  const [page, setPage] = useState(1);
 
-  const cardsParams = useMemo(
-    () => ({ endpoint: "units" as const, query: params.query ?? "", limit: 6 }),
-    [params.query]
-  );
+  const allUnitsParams = useMemo(() => ({ endpoint: 'units', page: 1, query: params.query || '' }), [page, params.query]);
+  const featuredUnitsParams = useMemo(() => ({ endpoint: 'units', featured: 1, page: 1 }), []);
 
   // Fetch featured properties
   const { data: featuredProperties, loading: featuredLoading, error: featuredError } = useCRMRE({
     fn: getProperties,
-    params: featuredParams,
+    params: featuredUnitsParams,
   });
 
   // Fetch regular properties
-  const { data: properties, loading: cardsLoading, error: cardsError } = useCRMRE({
+  const { data: properties, loading: allProperties, refetch: refetchAll, error: cardsError } = useCRMRE({
     fn: getProperties,
-    params: cardsParams,
+    params: allUnitsParams,
   });
 
   const handleCardPress = (id?: number) => {
@@ -43,6 +37,11 @@ export default function Index() {
     } else {
       console.error("Property ID is undefined");
     }
+  };
+
+  const loadMore = () => {
+    setPage((prev) => prev + 1);
+    refetchAll({ endpoint: 'units', page: page + 1, query: params.query || '' });
   };
 
   const greeting = (() => {
@@ -65,7 +64,7 @@ export default function Index() {
         columnWrapperClassName="flex gap-5 px-5"
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
-          cardsLoading ? (
+          allProperties ? (
             <ActivityIndicator size="large" className="text-primary-300 mt-5" />
           ) : <NoResults />
         }
@@ -135,6 +134,9 @@ export default function Index() {
 
           </View>
         }
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={allProperties ? <ActivityIndicator size="large" /> : null}
       />
 
     </SafeAreaView>
