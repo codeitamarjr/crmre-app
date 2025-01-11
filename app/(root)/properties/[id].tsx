@@ -65,7 +65,7 @@ const PropertyDetails = () => {
       >
         <View className="relative w-full" style={{ height: windowHeight / 2 }}>
           <Image
-            source={{ uri: property.gallery?.cover }}
+            source={{ uri: property.gallery?.cover || "" }}
             className="size-full"
             resizeMode="cover"
           />
@@ -193,7 +193,7 @@ const PropertyDetails = () => {
               Overview
             </Text>
             <Text className="text-black-200 text-base font-rubik mt-2">
-              {property?.description}
+              {property?.description || 'No description available'}
             </Text>
           </View>
 
@@ -268,20 +268,22 @@ const PropertyDetails = () => {
               <MapView
                 style={{ height: 200, width: '100%', marginTop: 20, borderRadius: 15 }}
                 initialRegion={{
-                  latitude: property?.coordinates?.latitude,
-                  longitude: property?.coordinates?.longitude,
+                  latitude: property?.coordinates?.latitude || 0,
+                  longitude: property?.coordinates?.longitude || 0,
                   latitudeDelta: 0.01,
                   longitudeDelta: 0.01,
                 }}
               >
-                <Marker
-                  coordinate={{
-                    latitude: property?.coordinates?.latitude,
-                    longitude: property?.coordinates?.longitude,
-                  }}
-                  title={property?.type}
-                  description={property?.address}
-                />
+                {property?.coordinates?.latitude && property?.coordinates?.longitude && (
+                  <Marker
+                    coordinate={{
+                      latitude: property?.coordinates?.latitude,
+                      longitude: property?.coordinates?.longitude,
+                    }}
+                    title={property?.type}
+                    description={property?.address}
+                  />
+                )}
               </MapView>
             )}
 
@@ -330,7 +332,11 @@ const PropertyDetails = () => {
           <TouchableOpacity
             className="flex-1 flex flex-row items-center justify-center bg-primary-300 py-3 rounded-full shadow-md shadow-zinc-400"
             onPress={() => {
-              Linking.openURL(property.application_url);
+              if (property?.application_url) {
+                Linking.openURL(property.application_url);
+              } else {
+                alert('Application URL not available');
+              }
             }}
           >
             <Text className="text-white text-lg text-center font-rubik-bold">

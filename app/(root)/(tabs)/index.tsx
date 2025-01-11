@@ -12,11 +12,14 @@ import { useMemo, useState } from "react";
 
 export default function Index() {
   const { user } = useGlobalContext();
-  const params = useLocalSearchParams<{ query?: string; filter?: string }>();
-
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedFilter, setSelectedFilter] = useState('All');
   const [page, setPage] = useState(1);
+  const [allFetched, setAllFetched] = useState(false);
 
-  const allUnitsParams = useMemo(() => ({ endpoint: 'units', page: 1, query: params.query || '' }), [page, params.query]);
+  const params = useLocalSearchParams<{ query?: string }>();
+
+  const allUnitsParams = useMemo(() => ({ endpoint: 'units', page, query: params.query || '' }), [page, params.query]);
   const featuredUnitsParams = useMemo(() => ({ endpoint: 'units', featured: 1, page: 1 }), []);
 
   // Fetch featured properties
@@ -31,12 +34,41 @@ export default function Index() {
     params: allUnitsParams,
   });
 
+  // Filter locally
+  const filteredProperties = useMemo(() => {
+    if (!Array.isArray(properties)) return [];
+    const searchLower = searchTerm.toLowerCase();
+
+    return properties.filter((property) =>
+      [
+        property.address,
+        property.property_name,
+        property.city,
+        property.country,
+      ]
+        .filter((field) => field !== null && field !== undefined)
+        .some((field) => field.toLowerCase().includes(searchLower))
+    ).filter((property) =>
+      selectedFilter !== 'All' ? property.type === selectedFilter : true
+    );
+  }, [properties, searchTerm, selectedFilter]);
+
+
   const handleCardPress = (id?: number) => {
     if (id) {
       router.push(`/properties/${id}`);
     } else {
       console.error("Property ID is undefined");
     }
+  };
+
+  const handleSearch = (query: string) => {
+    setSearchTerm(query);
+  };
+
+  // Callback function to update the selected filter
+  const handleFilterChange = (filter: string) => {
+    setSelectedFilter(filter);
   };
 
   const loadMore = () => {
@@ -54,7 +86,7 @@ export default function Index() {
   return (
     <SafeAreaView className="bg-white h-full">
       <FlatList
-        data={Array.isArray(properties) ? properties : []}
+        data={Array.isArray(properties) ? filteredProperties : []}
         renderItem={({ item }) => (
           <RegularCard item={item} onPress={() => handleCardPress(item.id)} />
         )}
@@ -81,56 +113,60 @@ export default function Index() {
               <Image source={icons.bell} className="size-6" />
             </View>
 
-            <Search />
+            <Search onSearch={handleSearch} />
 
-            <View className="my-5">
-              <View className="flex flex-row items-center justify-between">
-                <Text className="text-xl font-rubik-bold text-black-300">
-                  Featured
-                </Text>
-                <TouchableOpacity>
-                  <Text className="text-base font-rubik-bold text-primary-300">
-                    See all
+            {/* Conditionally render the featured section */}
+            {!searchTerm && (
+              <View className="mt-5">
+                <View className="flex flex-row items-center justify-between">
+                  <Text className="text-xl font-rubik-bold text-black-300">
+                    Featured
                   </Text>
-                </TouchableOpacity>
+                  <TouchableOpacity>
+                    <Text className="text-base font-rubik-bold text-primary-300">
+                      See all
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+
+                {featuredLoading ?
+                  <ActivityIndicator size="large" className="text-primary-300" /> :
+                  !Array.isArray(featuredProperties) || featuredProperties.length === 0 ? <NoResults /> : (
+
+                    <FlatList
+                      data={featuredProperties}
+                      renderItem={({ item }) => (
+                        <FeaturedCard
+                          item={item}
+                          onPress={() => handleCardPress(item.id)}
+                        />
+                      )}
+                      keyExtractor={(item, index) =>
+                        `featured-${item.id.toString()}` || `featured-${index.toString()}`
+                      }
+                      horizontal
+                      showsHorizontalScrollIndicator={false}
+                      bounces={false}
+                      contentContainerClassName="flex gap-5 mt-5"
+                    />
+
+                  )}
               </View>
+            )}
 
-              {featuredLoading ?
-                <ActivityIndicator size="large" className="text-primary-300" /> :
-                !Array.isArray(featuredProperties) || featuredProperties.length === 0 ? <NoResults /> : (
-
-                  <FlatList
-                    data={featuredProperties}
-                    renderItem={({ item }) => (
-                      <FeaturedCard
-                        item={item}
-                        onPress={() => handleCardPress(item.id)}
-                      />
-                    )}
-                    keyExtractor={(item, index) =>
-                      `featured-${item.id.toString()}` || `featured-${index.toString()}`
-                    }
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    bounces={false}
-                    contentContainerClassName="flex gap-5 mt-5"
-                  />
-
-                )}
-            </View>
-
-            <View className="flex flex-row items-center justify-between">
+            <View className="mt-5 flex flex-row items-center justify-between">
               <Text className="text-xl font-rubik-bold text-black-300">
                 Our Recommendation
               </Text>
               <TouchableOpacity>
-                <Text className="text-base font-rubik-bold text-primary-300">
+                <Text onPress={() => setSelectedFilter('All')}
+                className="text-base font-rubik-bold text-primary-300">
                   See all
                 </Text>
               </TouchableOpacity>
             </View>
 
-            <Filters />
+            <Filters onFilterChange={handleFilterChange} />
 
           </View>
         }
