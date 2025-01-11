@@ -12,6 +12,8 @@ export interface Property {
   description: string;
   rate: string;
   featured?: boolean;
+  bathrooms: number;
+  bedrooms: number;
   gallery: {
     cover: string;
   };

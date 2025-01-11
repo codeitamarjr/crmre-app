@@ -231,7 +231,7 @@ const PropertyDetails = () => {
 
           </View>
 
-          {false && property?.gallery.length > 0 && (
+          {/* {false && property?.gallery.length > 0 && (
             <View className="mt-7">
               <Text className="text-black-300 text-xl font-rubik-bold">
                 Gallery
@@ -251,7 +251,7 @@ const PropertyDetails = () => {
                 contentContainerClassName="flex gap-4 mt-3"
               />
             </View>
-          )}
+          )} */}
 
           <View className="mt-7">
             <Text className="text-black-300 text-xl font-rubik-bold">
@@ -288,7 +288,7 @@ const PropertyDetails = () => {
 
           </View>
 
-          {false && property?.reviews.length > 0 && (
+          {/* {false && property?.reviews.length > 0 && (
             <View className="mt-7">
               <View className="flex flex-row items-center justify-between">
                 <View className="flex flex-row items-center">
@@ -309,7 +309,7 @@ const PropertyDetails = () => {
                 <Comment item={property?.reviews[0]} />
               </View>
             </View>
-          )}
+          )} */}
         </View>
       </ScrollView>
 
