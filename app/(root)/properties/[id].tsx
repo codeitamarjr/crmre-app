@@ -274,16 +274,14 @@ const PropertyDetails = () => {
                   longitudeDelta: 0.01,
                 }}
               >
-                {property?.coordinates?.latitude && property?.coordinates?.longitude && (
-                  <Marker
-                    coordinate={{
-                      latitude: property?.coordinates?.latitude,
-                      longitude: property?.coordinates?.longitude,
-                    }}
-                    title={property?.type}
-                    description={property?.address}
-                  />
-                )}
+                <Marker
+                  coordinate={{
+                    latitude: property?.coordinates?.latitude,
+                    longitude: property?.coordinates?.longitude,
+                  }}
+                  title={property?.type + ' ' + property?.number || 'Property'}
+                  description={property?.address || 'Location'}
+                />
               </MapView>
             )}
 
