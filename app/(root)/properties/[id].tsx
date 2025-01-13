@@ -11,7 +11,6 @@ import {
   Linking,
 } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
-import MapView, { Marker } from "react-native-maps";
 
 import icons from "@/constants/icons";
 import images from "@/constants/images";
@@ -20,6 +19,7 @@ import { facilities } from "@/constants/data";
 
 import { useMemo } from "react";
 import { getProperties, useCRMRE, Property } from "@/lib/crmre";
+import { MapCard } from "@/components/Maps";
 
 const PropertyDetails = () => {
   const { id } = useLocalSearchParams<{ id?: string }>();
@@ -152,10 +152,11 @@ const PropertyDetails = () => {
 
             <View className="flex flex-row items-center justify-between mt-4">
               <View className="flex flex-row items-center">
-                <Image
-                  source={{ uri: agent.avatar }}
-                  className="size-14 rounded-full"
-                />
+                <View className="inline-flex size-14 items-center justify-center rounded-full bg-gray-500">
+                  <Text className="text-xs font-medium text-white">
+                    {agent?.name?.charAt(0)} {agent?.name?.split(" ")[1]?.charAt(0)}
+                  </Text>
+                </View>
 
                 <View className="flex flex-col items-start justify-center ml-3">
                   <Text className="text-lg text-black-300 text-start font-rubik-bold">
@@ -172,7 +173,6 @@ const PropertyDetails = () => {
                   </TouchableOpacity>
                 </View>
               </View>
-
               <View className="flex flex-row items-center gap-3">
                 <TouchableOpacity
                   onPress={() => Linking.openURL(`mailto:${agent.email}?subject=Enquiry from Real Enquiries App - ${property.type} ${property.number} - ${property.address}`)}
@@ -264,25 +264,8 @@ const PropertyDetails = () => {
               </Text>
             </View>
 
-            {property?.coordinates?.latitude && property?.coordinates?.longitude && (
-              <MapView
-                style={{ height: 200, width: '100%', marginTop: 20, borderRadius: 15 }}
-                initialRegion={{
-                  latitude: property?.coordinates?.latitude || 0,
-                  longitude: property?.coordinates?.longitude || 0,
-                  latitudeDelta: 0.01,
-                  longitudeDelta: 0.01,
-                }}
-              >
-                <Marker
-                  coordinate={{
-                    latitude: property?.coordinates?.latitude,
-                    longitude: property?.coordinates?.longitude,
-                  }}
-                  title={property?.type + ' ' + property?.number || 'Property'}
-                  description={property?.address || 'Location'}
-                />
-              </MapView>
+            {Platform.OS === 'ios' && property?.coordinates?.latitude && property?.coordinates?.longitude && (
+              <MapCard property={property} />
             )}
 
 
