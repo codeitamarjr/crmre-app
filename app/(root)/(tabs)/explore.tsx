@@ -1,56 +1,84 @@
 import { ActivityIndicator, Button, FlatList, Image, Text, Touchable, TouchableOpacity, View } from "react-native";
-import { Link, router, useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import images from "@/constants/images";
 import icons from "@/constants/icons";
 import Search from "@/components/Search";
-import { FeaturedCard, RegularCard } from "@/components/Cards";
+import { RegularCard } from "@/components/Cards";
 import Filters from "@/components/Filters";
-import { useGlobalContext } from "@/lib/global-provide";
-import { useAppwrite } from "@/lib/useAppwrite";
-import { getLatestProperties, getProperties } from "@/lib/appwrite";
-import { useEffect } from "react";
+import { useCRMRE, getProperties } from "@/lib/crmre";
+import { useMemo, useState } from "react";
 import NoResults from "@/components/NoResults";
 
 export default function Explore() {
-  const params = useLocalSearchParams<{ query?: string; filter?: string; }>();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedFilter, setSelectedFilter] = useState('All');
+  const [page, setPage] = useState(1);
 
-  const { data: properties, loading, refetch } = useAppwrite({
+  const params = useLocalSearchParams<{ query?: string }>();
+
+  const allUnitsParams = useMemo(() => ({ endpoint: 'units', page, query: params.query || '' }), [page, params.query]);
+
+  // Fetch regular properties
+  const { data: properties, loading: allProperties, refetch: refetchAll, error: cardsError } = useCRMRE({
     fn: getProperties,
-    params: {
-      filter: params.filter!,
-      query: params.query!,
-      limit: 20,
-    },
-    skip: true,
-  })
+    params: allUnitsParams,
+  });
 
-  const handleCardPress = (id: string) => router.push(`/properties/${id}`);
+  // Filter locally
+  const filteredProperties = useMemo(() => {
+    if (!Array.isArray(properties)) return [];
+    const searchLower = searchTerm.toLowerCase();
 
-  useEffect(() => {
-    refetch({
-      filter: params.filter!,
-      query: params.query!,
-      limit: 20,
-    });
-  }, [params.query, params.filter]);
+    return properties.filter((property) =>
+      [
+        property.address,
+        property.property_name,
+        property.city,
+        property.country,
+      ]
+        .filter((field) => field !== null && field !== undefined)
+        .some((field) => field.toLowerCase().includes(searchLower))
+    ).filter((property) =>
+      selectedFilter !== 'All' ? property.type === selectedFilter : true
+    );
+  }, [properties, searchTerm, selectedFilter]);
 
-  const date = new Date();
-  const hours = date.getHours();
-  const greeting = hours < 12 && hours >= 6 ? "Good morning" : hours < 18 && hours >= 12 ? "Good afternoon" : "Good evening";
+  const handleCardPress = (id?: number) => {
+    if (id) {
+      router.push(`/properties/${id}`);
+    } else {
+      console.error("Property ID is undefined");
+    }
+  };
+
+  const handleSearch = (query: string) => {
+    setSearchTerm(query);
+  };
+
+  // Callback function to update the selected filter
+  const handleFilterChange = (filter: string) => {
+    setSelectedFilter(filter);
+  };
+
+  const loadMore = () => {
+    setPage((prev) => prev + 1);
+    refetchAll({ endpoint: 'units', page: page + 1, query: params.query || '' });
+  };
 
   return (
     <SafeAreaView className="bg-white h-full">
       <FlatList
-        data={properties}
-        renderItem={({ item }) => <RegularCard item={item} onPress={() => handleCardPress(item.$id)} />}
-        keyExtractor={(item) => item.$id}
+        data={Array.isArray(properties) ? filteredProperties : []}
+        renderItem={({ item }) => (
+          <RegularCard item={item} onPress={() => handleCardPress(item.id)} />
+        )}
+        keyExtractor={(item, index) => `property-${item.id.toString()}` || `property-${index.toString()}`}
         numColumns={2}
         contentContainerClassName="pb-32"
         columnWrapperClassName="flex gap-5 px-5"
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
-          loading ? (
+          allProperties ? (
             <ActivityIndicator size="large" className="text-primary-300 mt-5" />
           ) : <NoResults />
         }
@@ -72,17 +100,21 @@ export default function Explore() {
 
             </View>
 
-            <Search />
+            <Search onSearch={handleSearch} />
 
             <View className="mt-5">
-              <Filters />
+
+              <Filters onFilterChange={handleFilterChange} />
 
               <Text className="text-xl font-rubik-bold text-black-300 mt-5">
-                Found {properties?.length} Properties
+                Found {Array.isArray(properties) ? properties.length : 0} properties
               </Text>
             </View>
           </View>
         }
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={allProperties ? <ActivityIndicator size="large" /> : null}
       />
 
     </SafeAreaView>
