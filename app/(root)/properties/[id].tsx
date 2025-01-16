@@ -21,6 +21,7 @@ import { useMemo } from "react";
 import { getProperties, useCRMRE, Property } from "@/lib/crmre";
 import { MapCard } from "@/components/Maps";
 import Carrousel from "@/components/Carrousel";
+import GalleryComponent from "@/components/GalleryComponent";
 
 const PropertyDetails = () => {
   const { id } = useLocalSearchParams<{ id?: string }>();
@@ -66,11 +67,10 @@ const PropertyDetails = () => {
         contentContainerClassName="pb-32 bg-white"
       >
         <View className="relative w-full" style={{ height: windowHeight / 2 }}>
-          {property?.gallery?.images?.length > 0 && (
-            <Carrousel images={property?.gallery?.images} />
-          )}
 
-          {property?.gallery?.images?.length === 0 && (
+          {property?.gallery?.images?.length > 0 ? (
+            <Carrousel images={property?.gallery?.images} />
+          ) : (
             <Image
               source={{ uri: cover }}
               className="size-full"
@@ -241,25 +241,7 @@ const PropertyDetails = () => {
           </View>
 
           {gallery?.length > 0 && (
-            <View className="mt-7">
-              <Text className="text-black-300 text-xl font-rubik-bold">
-                Gallery
-              </Text>
-              <FlatList
-                contentContainerStyle={{ paddingRight: 20 }}
-                data={gallery}
-                keyExtractor={(_, index) => index.toString()}
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                renderItem={({ item }) => (
-                  <Image
-                    source={{ uri: item }}
-                    className="size-40 rounded-xl"
-                  />
-                )}
-                contentContainerClassName="flex gap-4 mt-3"
-              />
-            </View>
+            <GalleryComponent gallery={gallery} />
           )}
 
           <View className="mt-7">
