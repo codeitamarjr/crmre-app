@@ -57,6 +57,7 @@ const PropertyDetails = () => {
 
   const agent = Array.isArray(property.agent) ? property.agent[0] : {};
   const cover = property.gallery?.cover || property.property?.gallery?.cover;
+  const gallery = property.gallery?.images || null;
 
   return (
     <View>
@@ -239,27 +240,27 @@ const PropertyDetails = () => {
 
           </View>
 
-          {/* {false && property?.gallery.length > 0 && (
+          {gallery?.length > 0 && (
             <View className="mt-7">
               <Text className="text-black-300 text-xl font-rubik-bold">
                 Gallery
               </Text>
               <FlatList
                 contentContainerStyle={{ paddingRight: 20 }}
-                data={property?.gallery}
-                keyExtractor={(item) => item.$id}
+                data={gallery}
+                keyExtractor={(_, index) => index.toString()}
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 renderItem={({ item }) => (
                   <Image
-                    source={{ uri: item.image }}
+                    source={{ uri: item }}
                     className="size-40 rounded-xl"
                   />
                 )}
                 contentContainerClassName="flex gap-4 mt-3"
               />
             </View>
-          )} */}
+          )}
 
           <View className="mt-7">
             <Text className="text-black-300 text-xl font-rubik-bold">
