@@ -106,7 +106,7 @@ const PropertyDetails = () => {
 
         <View className="px-5 mt-7 flex gap-2">
           <Text className="text-2xl font-rubik-extrabold">
-            {property?.type} {property?.number} - {property?.address}
+            {property?.type} {property?.number} - {property?.property?.name}
           </Text>
 
           <View className="flex flex-row items-center gap-3">

@@ -6,7 +6,6 @@ import { Alert } from "react-native";
 export interface Property {
   id: number;
   address: string;
-  property_name: string;
   city: string;
   country: string;
   description: string;
@@ -17,6 +16,12 @@ export interface Property {
   gallery: {
     cover: string;
   };
+  property:{
+    name: string;
+    address: string;
+    city: string;
+    country: string;
+  }
   facilities: {
     identifier: string;
     facility: string;
