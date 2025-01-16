@@ -15,12 +15,16 @@ export interface Property {
   bedrooms: number;
   gallery: {
     cover: string;
+    images: string[];
   };
   property:{
     name: string;
     address: string;
     city: string;
     country: string;
+    gallery: {
+      cover: string;
+    };
   }
   facilities: {
     identifier: string;

@@ -20,6 +20,7 @@ import { facilities } from "@/constants/data";
 import { useMemo } from "react";
 import { getProperties, useCRMRE, Property } from "@/lib/crmre";
 import { MapCard } from "@/components/Maps";
+import Carrousel from "@/components/Carrousel";
 
 const PropertyDetails = () => {
   const { id } = useLocalSearchParams<{ id?: string }>();
@@ -55,7 +56,7 @@ const PropertyDetails = () => {
   }
 
   const agent = Array.isArray(property.agent) ? property.agent[0] : {};
-  const gallery = property.gallery ? [property.gallery] : [];
+  const cover = property.gallery?.cover || property.property?.gallery?.cover;
 
   return (
     <View>
@@ -64,11 +65,18 @@ const PropertyDetails = () => {
         contentContainerClassName="pb-32 bg-white"
       >
         <View className="relative w-full" style={{ height: windowHeight / 2 }}>
-          <Image
-            source={{ uri: property.gallery?.cover || "" }}
-            className="size-full"
-            resizeMode="cover"
-          />
+          {property?.gallery?.images?.length > 0 && (
+            <Carrousel images={property?.gallery?.images} />
+          )}
+
+          {property?.gallery?.images?.length === 0 && (
+            <Image
+              source={{ uri: cover }}
+              className="size-full"
+              resizeMode="cover"
+            />
+          )}
+
           <Image
             source={images.whiteGradient}
             className="absolute top-0 w-full z-40"
